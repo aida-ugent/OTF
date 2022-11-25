@@ -3,23 +3,39 @@ from torch.nn.functional import one_hot
 
 
 class LinearFairnessNotion:
-    def __init__(self, cond_on_target=False):
-        self.cond_on_target = cond_on_target  # If True, this is basically Equalized Odds.
+    def compute_G(self, *args):
+        raise NotImplementedError
 
-    def compute_G(self, prot_input, target):
-        nb_constraints = prot_input.shape[0]
-        if self.cond_on_target:
-            target = one_hot(target, num_classes=2)
-            inner_variables = torch.einsum("nl,nk->nlk", target, prot_input)
-            # TODO: clean up reshape here
-            overall_mean_term = (target / torch.sum(target, dim=0)).reshape(target.shape[0], target.shape[1], 1)
-            nb_constraints *= 2
-        else:
-            inner_variables = prot_input
-            overall_mean_term = 1 / prot_input.shape[0]
 
+class ProbabilisticDemographicParity(LinearFairnessNotion):
+    def compute_G(self, prot_input, *args):
+        """
+        Compute constraints matrix for Probabilistic Demographic Parity.
+        :param prot_input: (N, prot_dim) tensor of protected/sensitive values where categorical sensitive values are
+        one-hot encoded.
+        """
+        inner_variable_means = torch.sum(prot_input, dim=0)
+        G = prot_input / inner_variable_means - 1 / prot_input.shape[0]
+        return G
+
+
+class ProbabilisticEqualizedOdds(LinearFairnessNotion):
+    def compute_G(self, prot_input, target, *args):
+        """
+        Compute constraints matrix for Probabilistic Demographic Parity.
+        :param prot_input: (N, prot_dim) tensor of protected/sensitive values where categorical sensitive values are
+        one-hot encoded.
+        :param target: (N,) target label for each prediction.
+        """
+
+        target = one_hot(target, num_classes=2)
+        inner_variables = torch.einsum("nl,nk->nlk", target, prot_input)
+
+        overall_mean_term = (target / torch.sum(target, dim=0)).unsqueeze(-1)
         inner_variable_means = torch.sum(inner_variables, dim=0)
         G = inner_variables / inner_variable_means - overall_mean_term
-        G = G.reshape(-1, nb_constraints) # TODO is this reshape necessary?
+
+        # Put all constraints on the same axis.
+        G = G.reshape(prot_input.shape[0], -1)
         return G
 
