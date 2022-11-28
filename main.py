@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from otf.predictor import Predictor
 from otf.evaluation import evaluate
 from otf.linear_fairness_notion import ProbabilisticDemographicParity, ProbabilisticEqualizedOdds
-from otf_cost import OTFCost
+from otf.otf_cost import OTFCost
 
 
 def main():
@@ -49,7 +49,8 @@ def main():
     # Initialise and fit model on the data
     model = Predictor(nb_features=train_data.tensors[0].shape[1],
                       nb_epochs=100)
-    fairness_notion = ProbabilisticEqualizedOdds()
+    fairness_notion = ProbabilisticDemographicParity()
+    # fairness_notion = ProbabilisticEqualizedOdds()
     otf_cost = OTFCost(fairness_notion,
                        nb_epochs=100,
                        margin_tol=1e-3,
@@ -63,8 +64,8 @@ def main():
     model.fit(train_dataloader, otf_cost)
 
     # Evaluate
-    print(evaluate(model, train_data, data_name="train"))
-    print(evaluate(model, test_data, data_name="test"))
+    print(evaluate(model.predict, train_data, data_name="train"))
+    print(evaluate(model.predict, test_data, data_name="test"))
 
 
 if __name__ == '__main__':

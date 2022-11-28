@@ -2,10 +2,10 @@ from sklearn import metrics as skm
 import numpy as np
 
 
-def evaluate(predictor, dataset, data_name=''):
+def evaluate(predict_f, dataset, data_name=''):
     unprot_input, prot_input, target = dataset[:]
 
-    prediction = predictor.predict(unprot_input).numpy()
+    prediction = predict_f(unprot_input).numpy()
     prot_input = prot_input.numpy()
     target = target.numpy()
 

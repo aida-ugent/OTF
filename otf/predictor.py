@@ -3,11 +3,21 @@ from tqdm import tqdm
 
 
 class Predictor:
-    def __init__(self, nb_features,
-                 layer_sizes=None,
-                 lr=.001,
-                 nb_epochs=100,
-                 fairness_loss_strength=0.5):
+    def __init__(self, nb_features: int,
+                 layer_sizes: list[int] = None,
+                 lr: float = .001,
+                 nb_epochs: int = 100,
+                 fairness_loss_strength: float = 0.5):
+        """
+        Generic neural network model that optimizes the convex sum of a binary cross-entropy loss and a fairness
+        regularization term.
+        :param nb_features: number of input features in each feature vector.
+        :param layer_sizes: dimensionality of hidden layers. Can be empty.
+        :param lr: learning rate.
+        :param nb_epochs: number of training epochs.
+        :param fairness_loss_strength: (aka alpha) relative strength of the fairness regularization loss over the binary
+        cross-entropy loss on a scale of 0 to 1. For efficiency reasons, the fairness loss is not computed for value 0.
+        """
         super().__init__()
         self.nb_features = nb_features
         if layer_sizes is None:
@@ -47,7 +57,7 @@ class Predictor:
             for batch in train_dataloader:
                 self.optimizer.zero_grad()
 
-                unprot_input, prot_input, targets, C = batch
+                unprot_input, prot_input, targets, *extra = batch
                 logits = self.model(unprot_input)
 
                 if self.fairness_loss_strength < 1.:
@@ -56,7 +66,7 @@ class Predictor:
                     bce_loss = torch.zeros(1)
 
                 if self.fairness_loss_strength > 0.:
-                    fairness_loss = self.fairness_loss_f(logits, prot_input, targets, C)
+                    fairness_loss = self.fairness_loss_f(logits, prot_input, targets, *extra)
                 else:
                     fairness_loss = torch.zeros(1)
 

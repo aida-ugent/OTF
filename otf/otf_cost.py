@@ -5,14 +5,26 @@ from scipy.special import logsumexp
 from scipy.optimize import minimize
 from scipy.spatial.distance import cdist
 
+from otf.linear_fairness_notion import LinearFairnessNotion
+
 
 class OTFCost(torch.nn.Module):
-    def __init__(self,
-                 fairness_notion,
-                 nb_epochs=100,
-                 margin_tol=1e-3,
-                 constraint_tol=1e-3,
-                 reg_strength=1e-3):
+    def __init__(self, fairness_notion: LinearFairnessNotion,
+                 nb_epochs: int = 100,
+                 margin_tol: float = 1e-3,
+                 constraint_tol: float = 1e-3,
+                 reg_strength: float = 1e-3):
+        """
+        Initialize OTF cost term as a PyTorch Module.
+        :param fairness_notion: a LinearFairnessNotion object. Its main purpose is to provide the G matrix.
+        :param nb_epochs: maximum number of epochs allowed to compute the OTF cost. The optimization may finish in
+        fewer epochs if the margin_tol is reached first.
+        :param margin_tol: relative tolerance on the convergence of the OTF optimization.
+        :param constraint_tol: relative tolerance on the convergence of the mu/nu dual variables. These are the dual
+        variables that model the fairness constraint and their updates have no closed form solution.
+        :param reg_strength: (aka epsilon) the smoothness of the OTF coupling matrix. Higher leads to solutions with
+         more smoothness (i.e. transport is spread out over more samples), but the fairness signal may be lost.
+        """
         super().__init__()
         self.fairness_notion = fairness_notion
         self.nb_epochs = nb_epochs
