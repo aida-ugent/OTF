@@ -17,10 +17,11 @@ When using the OTF cost, please make sure to tune the `reg_strength` hyperparame
 If you found our code useful, please cite our paper:
 
 
-    @inproceedings{buyl2022otf,
-        title={Optimal Transport of Classifiers to Fairness},
-        author={Buyl, Maarten and De Bie, Tijl},
-        booktitle={Conference on Neural Information Processing Systems}
-    }
-
-Note: though the paper was presented at NeurIPS 2022, the proceedings were not published yet. In the meantime, you can also check out our arxiv version: https://arxiv.org/abs/2202.03814. 
+@inproceedings{buyl2022otf,
+ title = {Optimal Transport of Classifiers to Fairness},
+ author = {Buyl, Maarten and De Bie, Tijl},
+ booktitle = {Advances in Neural Information Processing Systems},
+ volume = {35},
+ pages = {33728--33740},
+ year = {2022}
+}
